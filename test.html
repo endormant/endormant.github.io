@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>endo</title>
+<meta name="description" content="endo, 16, from Belgium. I make Discord bots in Python and script Roblox games in Luau.">
+<meta name="color-scheme" content="dark light">
+<meta name="theme-color" content="#313338">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%90%8D%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* Light is the base theme; dark follows the visitor's system setting. */
+  :root {
+    --bg: #ffffff;
+    --panel: #f2f3f5;
+    --sunken: #e3e5e8;
+    --btn: #f2f3f5;
+    --btn-hover: #e3e5e8;
+    --cmd: #e3e5e8;
+    --text: #060607;
+    --text-2: #313338;
+    --muted: #5c5e66;
+    --line: #d1d3d7;
+    --blurple: #5865f2;
+    --link: #0067e0;
+
+    color-scheme: light dark;
+    box-sizing: border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #313338;
+      --panel: #2b2d31;
+      --sunken: #1e1f22;
+      --btn: #2b2d31;
+      --btn-hover: #35373c;
+      --cmd: #383a40;
+      --text: #f2f3f5;
+      --text-2: #dbdee1;
+      --muted: #a3a6ad;
+      --line: #3f4147;
+      --link: #00a8fc;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #313338;
+    --panel: #2b2d31;
+    --sunken: #1e1f22;
+    --btn: #2b2d31;
+    --btn-hover: #35373c;
+    --cmd: #383a40;
+    --text: #f2f3f5;
+    --text-2: #dbdee1;
+    --muted: #a3a6ad;
+    --line: #3f4147;
+    --link: #00a8fc;
+  }
+
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  *, *::before, *::after { box-sizing: inherit; }
+  [hidden] { display: none !important; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text-2);
+    font-family: "Plus Jakarta Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--link); }
+  :focus-visible { outline: 2px solid var(--link); outline-offset: 2px; }
+
+  .wrap { max-width: 960px; margin: 0 auto; padding: 32px 16px 48px; }
+
+  /* ---------- building blocks ---------- */
+
+  .container {
+    --pad-y: 16px;
+    --pad-x: 20px;
+    padding: var(--pad-y) var(--pad-x);
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+
+  .sect { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+  .sect .text { flex: 1; min-width: 0; }
+  .thumb {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: var(--thumb, 64px);
+    height: var(--thumb, 64px);
+    border-radius: var(--thumb-radius, 16px);
+    overflow: hidden;
+    background: var(--accent, var(--blurple));
+    color: #fff;
+    font-size: calc(var(--thumb, 64px) * 0.42);
+    font-weight: 800;
+    line-height: 1;
+  }
+  .thumb > svg, .thumb > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+  .sep { height: 1px; margin: 16px 0; border: 0; background: var(--line); }
+
+  .text h2, .text h3 { margin: 0; color: var(--text); line-height: 1.25; }
+  .text h2 { font-size: 20px; font-weight: 800; }
+  .text h3 { font-size: 18px; font-weight: 700; }
+  .text p { margin: 4px 0 0; max-width: 60ch; font-size: 15px; color: var(--text-2); }
+  .text p.muted, .muted { color: var(--muted); }
+  .text p.small { font-size: 13px; font-weight: 600; }
+
+  .kindline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 10px;
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .status { display: inline-flex; align-items: center; gap: 6px; }
+  .status i { width: 8px; height: 8px; border-radius: 50%; background: var(--dot, var(--muted)); flex: none; }
+
+  /* Buttons live outside the container, underneath it */
+  .actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 36px;
+    padding: 6px 14px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--btn);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.15s;
+  }
+  .btn:hover { background: var(--btn-hover); }
+  .btn svg { width: 16px; height: 16px; flex: none; color: var(--muted); }
+
+  /* Banner across the top of a container (optional, filled from Discord when available) */
+  .banner {
+    height: 104px;
+    margin: calc(var(--pad-y) * -1) calc(var(--pad-x) * -1) var(--pad-y);
+    border-radius: 7px 7px 0 0;
+    overflow: hidden;
+    background: var(--sunken);
+  }
+  .banner img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+  /* Small titled groups inside a container */
+  .field { margin-top: 16px; }
+  .field-title { margin: 0 0 8px; color: var(--text); font-size: 12px; font-weight: 700; line-height: 1.3; }
+
+  .cmds { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cmd {
+    position: relative;
+    min-width: 60px;
+    padding: 8px 20px;
+    border-radius: 4px;
+    background: var(--cmd);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    cursor: default;
+  }
+
+  /* Hover tooltip, dark in both themes */
+  .tip {
+    --dx: 0px;
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    z-index: 20;
+    width: max-content;
+    max-width: 240px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    background: #111214;
+    color: #dbdee1;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.4;
+    text-align: left;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(calc(-50% + var(--dx)));
+    transition: opacity 0.12s;
+  }
+  .tip::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: calc(-6px - var(--dx));
+    border: 6px solid transparent;
+    border-top-color: #111214;
+  }
+  .cmd:hover .tip, .cmd:focus .tip { opacity: 1; }
+
+  .roles { display: flex; flex-wrap: wrap; gap: 4px; }
+  .role {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 8px 3px 6px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    color: var(--text);
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  .role i { width: 12px; height: 12px; border-radius: 50%; background: var(--dot, var(--muted)); flex: none; }
+
+  .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-top: 16px; }
+  .gallery img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 8px; background: var(--sunken); }
+
+  /* A card = a container plus its button row underneath */
+  .card { display: flex; flex-direction: column; gap: 8px; }
+  .card > .container { flex: 1; }
+
+  /* ---------- hero ---------- */
+  .hero { --thumb: 104px; --thumb-radius: 28px; --pad-y: 20px; --pad-x: 24px; }
+  .wordmark {
+    margin: 0;
+    color: var(--text);
+    font-size: clamp(60px, 15vw, 104px);
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    line-height: 0.95;
+  }
+  .hero .tagline { margin-top: 12px; font-size: 18px; font-weight: 600; color: var(--text); }
+  .hero .bio { margin-top: 8px; }
+  .hero .now { margin-top: 12px; font-size: 14px; font-weight: 600; }
+
+  /* ---------- page sections ---------- */
+  .block { margin-top: 56px; }
+  .block-head { margin: 0 0 16px 2px; }
+  .block-head h2 { margin: 0; color: var(--text); font-size: 26px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
+  .block-head p { margin: 2px 0 0; color: var(--muted); font-size: 15px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+    gap: 24px 16px;
+  }
+  .grid .featured { grid-column: 1 / -1; }
+
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; align-items: stretch; }
+  .period {
+    flex: none;
+    padding: 2px 10px;
+    border-radius: 6px;
+    background: var(--sunken);
+    color: var(--text-2);
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  footer { margin-top: 56px; color: var(--muted); font-size: 13px; }
+  footer p { margin: 0 0 2px 2px; }
+
+  @media (max-width: 760px) {
+    .two { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 520px) {
+    .container { --pad-y: 14px; --pad-x: 16px; }
+    .hero { --thumb: 72px; --thumb-radius: 20px; --pad-y: 16px; --pad-x: 16px; }
+    .banner { height: 80px; }
+    .sect { gap: 14px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .btn, .tip { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <main>
+    <div class="card" id="hero-card">
+      <article class="container hero" id="hero" style="--accent:rgba(88, 101, 242, 0)"></article>
+      <div class="actions" id="hero-actions"></div>
+    </div>
+
+    <section class="block" aria-labelledby="projects-title">
+      <div class="block-head">
+        <h2 id="projects-title">Projects</h2>
+        <p>Discord bots I've built. Hover over a command to see what it does.</p>
+      </div>
+      <div class="grid" id="projects"></div>
+    </section>
+
+    <section class="block" aria-label="Experiences and education">
+      <div class="two">
+        <div class="container">
+          <div class="text">
+            <h2 id="exp-title">Experiences</h2>
+            <p class="muted">What I've been building and working on.</p>
+          </div>
+          <hr class="sep">
+          <div id="experiences" aria-labelledby="exp-title"></div>
+        </div>
+        <div class="container">
+          <div class="text">
+            <h2 id="edu-title">Education</h2>
+            <p class="muted">Where I've been learning.</p>
+          </div>
+          <hr class="sep">
+          <div id="education" aria-labelledby="edu-title"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>endo's portfolio.</p>
+    <p>Not affiliated with Discord or Roblox. Discord is a trademark of Discord Inc.</p>
+  </footer>
+</div>
+
+<script>
+/* =====================================================================
+   EDIT YOUR CONTENT HERE.
+   Everything on the page comes from the four blocks below.
+
+   Each bot only needs its Discord ID. When the page is hosted, it loads the
+   bot's name, description, profile picture and banner from Discord, and the
+   values you type here are the fallback if that lookup fails.
+   Everything marked "sample" is placeholder text, so replace it.
+   ===================================================================== */
+
+const PROFILE = {
+  name: "endo",
+  avatar: "bubbles.png",                           // e.g. "avatar.png". Leave "" for the default "e" avatar
+  tagline: "Discord Developer",
+  bio: "Hi! I'm 16 years old, from Belgium. I code discord bots with python, use Luau for small Roblox projects, and combine HTML with CSS to build small websites.",
+  now: "Currently doomscrolling",
+  banner: "",                           // optional banner image for the top card, e.g. "banner.png"
+  bannerColor: "",                      // or a colour, e.g. "#5865f2"
+  languages: ["Python", "HTML", "CSS", "Luau"],
+  links: [
+    { label: "Discord", url: "https://discord.com/users/1187057219787833415" },       // sample: your server invite or profile link
+    { label: "Github",  url: "https://github.com/" }         // sample: your GitHub profile
+  ],
+
+  // Optional, for the Online / Idle / Offline label on each bot.
+  // Put the ID of a server your bots are in. In that server: Server Settings > Widget > Enable.
+  // Leave "" to hide the status label.
+  statusServerId: "1536699364850933780"
+};
+
+const PROJECTS = [
+  {
+    id: "1525243868352745512",
+    name: "Moderation division",                                   // fallback until Discord's name loads
+    kind: "Discord bot",
+    description: "A moderation bot for keeping servers in order.",  // sample, replaced by the bot's Discord description
+    accent: "rgba(88, 101, 242, 0)",                                             // icon colour while the profile picture loads
+    bannerColor: "#f6d630",                                        // fallback banner colour
+    featured: true,                                                // spans the full width
+    roles: ["Python", "discord.py"],                               // sample
+    commands: [                                                    // sample: hover text is the description
+      { name: "/gamelog",     description: "Log an infraction committed ingame" },
+      { name: "/discordhistory", description: "Look up a person's discord moderation history" },
+      { name: "/revoke",  description: "Mark an infraction as appealed" }
+    ],
+    // invite: automatic from the ID. Set "" to hide it, or a URL to override it.
+    github: ""                                                     // add your repo URL to show a "Source code" button
+  },
+  {
+    id: "1530859912513458246",
+    name: "Lore division",
+    kind: "Discord bot",
+    description: "A bot for lore and worldbuilding communities.",  // sample
+    accent: "rgba(88, 101, 242, 0)",
+    bannerColor: "#f6d630",
+    featured: true,  
+    roles: ["Python", "discord.py"],
+    commands: [                                                    // sample
+      { name: "/cdchek",      description: "Check whether a person is on a lore character cooldown" },
+      { name: "/lookup", description: "Show the user's lore character" }
+    ],
+    github: ""
+  },
+  {
+    id: "1546578107316703272",
+    name: "ilyn payne",
+    kind: "Discord bot",
+    description: "Moderation utility bot.",                                 // sample
+    accent: "rgba(88, 101, 242, 0)",
+    bannerColor: "#5865f2",
+    featured: true,
+    roles: ["Python", "discord.py"],
+    commands: [                                                    // sample
+      { name: "/globalban", description: "Ban a user from all whitelisted servers" }
+    ],
+    github: ""
+  }
+];
+
+const EXPERIENCES = [
+  {
+    title: "Discord bot developer",                               // sample
+    org: "Independent projects",
+    period: "20XX to now",
+    description: "Building and running my own Discord bots in Python, from slash commands to moderation tools."
+  },
+  {
+    title: "Roblox scripter",                                     // sample
+    org: "Hobby projects",
+    period: "20XX to now",
+    description: "Writing Luau scripts for Roblox games."
+  }
+];
+
+const EDUCATION = [
+  {
+    title: "Secondary school",                                   // sample
+    org: "Belgium",
+    period: "2019 to now",
+    description: "Studying maths, history, and struggling with chemistry. Currently in my final year."
+  },
+  {
+    title: "Self-taught programming",                            // sample
+    org: "W3Schools, Tutorials",
+    period: "2024 to now",
+    description: "Learned Python, HTML, CSS and Luau by building projects."
+  }
+];
+
+/* ===================== Discord data (no need to edit) ===================== */
+
+const DISCORD_API = "https://discord.com/api/v10/";
+const LOOKUP_USER = "https://discordlookup.mesalytic.moe/v1/user/";   // public lookup for banners and avatars
+const CACHE_MINUTES = 10;
+
+// ---- pure helpers ----
+function hexColor(v) {
+  if (v == null || v === "") return null;
+  if (typeof v === "number") return "#" + v.toString(16).padStart(6, "0");
+  if (typeof v === "string" && /^#?[0-9a-f]{6}$/i.test(v)) return v[0] === "#" ? v : "#" + v;
+  return null;
+}
+
+function sized(url, size) {
+  if (!url) return null;
+  return url.includes("?") ? url : url + "?size=" + size;
+}
+
+function parseLookup(d) {
+  if (!d || typeof d !== "object") return {};
+  const tagName = d.tag ? String(d.tag).split("#")[0] : null;
+  const username = d.username || (d.raw && d.raw.username) || tagName || null;
+  return {
+    name: d.global_name || (d.raw && d.raw.global_name) || username || null,
+    username,
+    avatar: sized(d.avatar && d.avatar.link, 128),
+    banner: sized(d.banner && d.banner.link, 600),
+    color: hexColor(d.banner && d.banner.color) || hexColor(d.accent_color)
+  };
+}
+
+function parseRpc(d, id) {
+  if (!d || typeof d !== "object") return {};
+  return {
+    name: d.name || null,
+    description: (d.description || "").trim() || null,
+    avatar: d.icon ? "https://cdn.discordapp.com/app-icons/" + id + "/" + d.icon + ".png?size=128" : null
+  };
+}
+
+const STATUS = {
+  online:  { label: "Online",         color: "#23a55a" },
+  idle:    { label: "Idle",           color: "#f0b232" },
+  dnd:     { label: "Do not disturb", color: "#f23f43" },
+  offline: { label: "Offline",        color: "#80848e" }
+};
+
+// The widget only lists members that are online, so a bot that isn't listed counts as offline.
+function pickStatus(widget, names) {
+  if (!widget || !Array.isArray(widget.members)) return null;
+  const wanted = names.filter(Boolean).map(n => String(n).toLowerCase());
+  const m = widget.members.find(x => wanted.includes(String(x.username || "").toLowerCase()));
+  return m && STATUS[m.status] ? m.status : "offline";
+}
+// ---- end pure helpers ----
+
+async function getJSON(url, ms = 6000) {
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), ms);
+  try {
+    const res = await fetch(url, { signal: ctl.signal });
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    return await res.json();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function cacheGet(key, maxAgeMs) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    const o = JSON.parse(raw);
+    return { data: o.data, fresh: Date.now() - o.t < maxAgeMs };
+  } catch (e) { return null; }
+}
+function cacheSet(key, data) {
+  try { localStorage.setItem(key, JSON.stringify({ t: Date.now(), data })); } catch (e) { /* storage unavailable */ }
+}
+
+async function fetchBotInfo(id) {
+  const key = "endo:bot:" + id;
+  const cached = cacheGet(key, CACHE_MINUTES * 60000);
+  if (cached && cached.fresh) return cached.data;
+
+  const [rpc, user] = await Promise.allSettled([
+    getJSON(DISCORD_API + "applications/" + id + "/rpc"),
+    getJSON(LOOKUP_USER + id)
+  ]);
+  const r = rpc.status === "fulfilled" ? parseRpc(rpc.value, id) : {};
+  const u = user.status === "fulfilled" ? parseLookup(user.value) : {};
+  const info = {
+    name: u.name || r.name || null,
+    username: u.username || r.name || null,
+    description: r.description || null,
+    avatar: u.avatar || r.avatar || null,
+    banner: u.banner || null,
+    color: u.color || null
+  };
+  if (Object.values(info).some(Boolean)) { cacheSet(key, info); return info; }
+  return cached ? cached.data : null;   // lookup failed: fall back to the last saved copy
+}
+
+let widgetPromise = null;
+function fetchWidget() {
+  if (!PROFILE.statusServerId) return Promise.resolve(null);
+  if (!widgetPromise) {
+    widgetPromise = getJSON(DISCORD_API + "guilds/" + PROFILE.statusServerId + "/widget.json").catch(() => null);
+  }
+  return widgetPromise;
+}
+
+/* ===================== rendering (no need to edit) ===================== */
+
+const DOT_COLORS = {
+  "Python": "#376f9e", "HTML": "#e44d26", "CSS": "#264de4", "Luau": "#2596be",
+  "discord.py": "#5865f2", "Roblox API": "#e2231a", "JavaScript": "#f7df1e"
+};
+
+const ICON_EXTERNAL =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+  '<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/></svg>';
+
+function h(tag, props = {}, ...kids) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) {
+    if (v == null || v === false) continue;
+    if (k === "class") el.className = v;
+    else if (k === "text") el.textContent = v;
+    else if (k.startsWith("on")) el.addEventListener(k.slice(2), v);
+    else el.setAttribute(k, v);
+  }
+  for (const kid of kids.flat()) {
+    if (kid == null || kid === false) continue;
+    el.append(kid.nodeType ? kid : document.createTextNode(kid));
+  }
+  return el;
+}
+
+function icon(svg) {
+  const t = document.createElement("template");
+  t.innerHTML = svg;
+  return t.content.firstChild;
+}
+
+function linkButton(label, url) {
+  if (!url) return null;
+  const external = /^https?:/i.test(url);
+  return h("a", {
+    class: "btn",
+    href: url,
+    target: external ? "_blank" : null,
+    rel: external ? "noopener noreferrer" : null
+  }, h("span", { text: label }), external && icon(ICON_EXTERNAL));
+}
+
+function role(name) {
+  const c = h("span", { class: "role" }, h("i", { "aria-hidden": "true" }), name);
+  if (DOT_COLORS[name]) c.firstChild.style.setProperty("--dot", DOT_COLORS[name]);
+  return c;
+}
+
+function field(title, className, children) {
+  return h("div", { class: "field" },
+    h("h4", { class: "field-title", text: title }),
+    h("div", { class: className }, children)
+  );
+}
+
+// A banner element that can be filled now (from your config) and again later (from Discord)
+function bannerEl(image, color) {
+  const el = h("div", { class: "banner", "aria-hidden": "true" });
+  applyBanner(el, image, color);
+  return el;
+}
+function applyBanner(el, image, color) {
+  el.replaceChildren();
+  if (!image && !color) { el.hidden = true; return; }
+  el.hidden = false;
+  el.style.background = color || "";
+  if (image) {
+    const img = h("img", { src: image, alt: "", loading: "lazy" });
+    img.addEventListener("error", () => img.remove());
+    el.append(img);
+  }
+}
+
+// Show the real profile picture once it has loaded; keep the letter tile until then
+function setAvatar(thumb, url, alt) {
+  const img = new Image();
+  img.alt = alt || "";
+  img.addEventListener("load", () => { thumb.replaceChildren(img); });
+  img.src = url;
+}
+
+let tipCount = 0;
+function commandChip(c) {
+  const cmd = typeof c === "string" ? { name: c } : c;
+  const el = h("span", { class: "cmd", tabindex: cmd.description ? "0" : null }, cmd.name);
+  if (cmd.description) {
+    const id = "tip-" + (++tipCount);
+    const tip = h("span", { class: "tip", role: "tooltip", id, text: cmd.description });
+    el.setAttribute("aria-describedby", id);
+    el.append(tip);
+    // Keep the tooltip on screen when the command is near an edge
+    const place = () => {
+      tip.style.setProperty("--dx", "0px");
+      const r = tip.getBoundingClientRect();
+      const vw = document.documentElement.clientWidth;
+      let dx = 0;
+      if (r.left < 8) dx = 8 - r.left;
+      else if (r.right > vw - 8) dx = vw - 8 - r.right;
+      tip.style.setProperty("--dx", dx + "px");
+    };
+    el.addEventListener("mouseenter", place);
+    el.addEventListener("focus", place);
+  }
+  return el;
+}
+
+function inviteUrl(b) {
+  if (b.invite !== undefined) return b.invite;
+  return b.id ? "https://discord.com/oauth2/authorize?client_id=" + b.id + "&scope=bot%20applications.commands" : "";
+}
+
+function renderHero() {
+  const p = PROFILE;
+  const thumb = h("div", { class: "thumb" });
+  if (p.avatar) {
+    thumb.append(h("img", { src: p.avatar, alt: p.name + "'s avatar" }));
+  } else {
+    thumb.innerHTML =
+      '<svg viewBox="0 0 100 100" role="img" aria-label="' + p.name + '\'s avatar">' +
+      '<text x="50" y="52" text-anchor="middle" dominant-baseline="central" ' +
+      'font-family="Plus Jakarta Sans, Helvetica, Arial, sans-serif" font-weight="800" font-size="60" fill="#fff">' +
+      p.name.charAt(0).toLowerCase() + '</text></svg>';
+  }
+
+  document.getElementById("hero").append(
+    bannerEl(p.banner, p.bannerColor),
+    h("div", { class: "sect" },
+      h("div", { class: "text" },
+        h("h1", { class: "wordmark", text: p.name }),
+        h("p", { class: "tagline", text: p.tagline }),
+        h("p", { class: "bio", text: p.bio }),
+        p.now && h("p", { class: "now", text: p.now })
+      ),
+      thumb
+    ),
+    field("Languages I use", "roles", p.languages.map(role))
+  );
+
+  document.getElementById("hero-actions").append(
+    ...p.links.map(l => linkButton(l.label, l.url)).filter(Boolean)
+  );
+}
+
+function renderProjects() {
+  const root = document.getElementById("projects");
+  PROJECTS.forEach(b => {
+    const name = h("h3", { text: b.name });
+    const desc = h("p", { text: b.description });
+    const thumb = h("div", { class: "thumb", "aria-hidden": "true", text: b.name.charAt(0).toUpperCase() });
+    const status = h("span", { class: "status", hidden: "" }, h("i", { "aria-hidden": "true" }), h("span"));
+    const banner = bannerEl(b.banner, b.bannerColor);
+
+    const embed = h("article", { class: "container project" },
+      banner,
+      h("div", { class: "sect" },
+        h("div", { class: "text" },
+          name,
+          h("div", { class: "kindline" }, h("span", { text: b.kind || "Discord bot" }), status),
+          desc
+        ),
+        thumb
+      ),
+      b.images && b.images.length > 0 && h("div", { class: "gallery" },
+        b.images.map(src => h("img", { src, alt: b.name + " screenshot", loading: "lazy" }))),
+      b.commands && b.commands.length > 0 && field("Commands", "cmds", b.commands.map(commandChip)),
+      b.roles && b.roles.length > 0 && field("Roles", "roles", b.roles.map(role))
+    );
+    embed.style.setProperty("--accent", b.accent || "#5865f2");
+
+    const buttons = h("div", { class: "actions" },
+      linkButton("Add to Discord", inviteUrl(b)),
+      linkButton("Source code", b.github),
+      linkButton("Website", b.website)
+    );
+
+    root.append(h("div", { class: "card" + (b.featured ? " featured" : "") }, embed, buttons));
+    if (b.id) hydrateBot(b, { name, desc, thumb, status, banner });
+  });
+}
+
+// Fill in the live details after the page has drawn, so nothing waits on Discord
+async function hydrateBot(b, ui) {
+  const info = await fetchBotInfo(b.id).catch(() => null);
+  if (info) {
+    if (info.name) { ui.name.textContent = info.name; ui.thumb.textContent = info.name.charAt(0).toUpperCase(); }
+    if (info.description) ui.desc.textContent = info.description;
+    if (info.avatar) setAvatar(ui.thumb, info.avatar, (info.name || b.name) + " profile picture");
+    applyBanner(ui.banner, info.banner || b.banner, info.color || b.bannerColor);
+  }
+
+  const widget = await fetchWidget();
+  const key = pickStatus(widget, [b.widgetName, info && info.username, info && info.name, b.name]);
+  if (key) {
+    ui.status.querySelector("i").style.setProperty("--dot", STATUS[key].color);
+    ui.status.querySelector("span").textContent = STATUS[key].label;
+    ui.status.hidden = false;
+  }
+}
+
+function renderEntries(id, items) {
+  const root = document.getElementById(id);
+  items.forEach((it, i) => {
+    if (i > 0) root.append(h("hr", { class: "sep" }));
+    root.append(h("div", { class: "sect" },
+      h("div", { class: "text" },
+        h("h3", { text: it.title }),
+        h("p", { class: "muted small", text: it.org }),
+        it.description && h("p", { text: it.description })
+      ),
+      h("span", { class: "period", text: it.period })
+    ));
+  });
+}
+
+renderHero();
+renderProjects();
+renderEntries("experiences", EXPERIENCES);
+renderEntries("education", EDUCATION);
+document.title = PROFILE.name;
+</script>
+</body>
+</html>
